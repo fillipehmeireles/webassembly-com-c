@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<script type="module">
+  async function init() {
+    const { instance } = await WebAssembly.instantiateStreaming(
+      fetch("./c.wasm")
+    );
+
+	const name = "Fillipe";
+
+	const name_pointer = instance.exports.malloc(name.length);
+
+	let ascii_name = [];
+
+	for(let i = 0; i < name.length; i++) {
+		ascii_name.push(name.charCodeAt(i))
+	}
+	
+	 const c_array = new Uint32Array(
+      instance.exports.memory.buffer,
+      name_pointer,
+      name.length
+    );
+
+    c_array.set(ascii_name);
+	
+	instance.exports.changeChar(name_pointer, 1, 97);
+	
+	let new_name = '';	
+
+	for(let i = 0; i < name.length; i++) {
+		new_name += String.fromCharCode(instance.exports.getChunk(name_pointer, i));
+	}
+	console.log(`Name: ${name}`);
+	console.log(`New name: ${new_name}`);
+  }
+  init();
+</script>
+
+
